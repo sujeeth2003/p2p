@@ -16,3 +16,11 @@ def receive_messages(conn):
             print("\nConnection closed.")
             break
 
+def send_messages(conn):
+    while True:
+        try:
+            message = input("You: ")
+            conn.sendall(message.encode())
+        except (EOFError, OSError):
+            break
+
