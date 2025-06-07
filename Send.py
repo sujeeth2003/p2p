@@ -16,3 +16,11 @@ def receive_messages(sock):
             print("\nConnection closed.")
             break
 
+def send_messages(sock):
+    while True:
+        try:
+            message = input("You: ")
+            sock.sendall(message.encode())
+        except (EOFError, OSError):
+            break
+
