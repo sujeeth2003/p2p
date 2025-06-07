@@ -10,3 +10,9 @@ messages independently, without waiting for the other to speak first.
 > decentralized P2P network with peer discovery. It's a good first step
 > toward understanding how P2P messaging works at the socket level.
 
+## Requirements
+
+- Python 3.7+
+- Both machines on the same network (Wi-Fi/LAN), OR port forwarding set up
+  if connecting over the internet
+
