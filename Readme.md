@@ -28,7 +28,7 @@ messages independently, without waiting for the other to speak first.
    - macOS/Linux: `ifconfig` or `ip addr`
 
 2. Open `client.py` and set `SERVER_IP` to that address:
-```python
+   ```python
    SERVER_IP = "192.168.1.42"
 ```
 
