@@ -54,3 +54,18 @@ You should see:
 Connected!
 ```
 
+Once connected, both sides can type and send messages at any time —
+incoming messages will print automatically without interrupting what
+you're typing.
+
+## How it works
+
+- `server.py` opens a TCP socket, binds it to a port, and waits for a
+  connection
+- `client.py` connects directly to the server's IP and port
+- Once connected, each side spins up a background thread dedicated to
+  *receiving* messages, while the main thread stays free to *send*
+  messages via `input()`
+- This threading is what allows simultaneous send/receive instead of
+  strict turn-based messaging
+
