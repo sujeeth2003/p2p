@@ -41,3 +41,16 @@ messages independently, without waiting for the other to speak first.
 python server.py
 ```
 You should see:
+```
+Listening on 3939...
+```
+
+**On the client machine:**
+```bash
+python client.py
+```
+You should see:
+```
+Connected!
+```
+
