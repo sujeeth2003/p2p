@@ -30,7 +30,7 @@ messages independently, without waiting for the other to speak first.
 2. Open `client.py` and set `SERVER_IP` to that address:
    ```python
    SERVER_IP = "192.168.1.42"
-```
+   ```
 
 3. Make sure port `3939` isn't blocked by a firewall on the server machine.
 
