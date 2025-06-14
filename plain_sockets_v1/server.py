@@ -24,3 +24,17 @@ def send_messages(conn):
         except (EOFError, OSError):
             break
 
+def main():
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind((HOST, PORT))
+    server.listen(1)
+
+    print(f"Listening on {PORT}...")
+
+    conn, addr = server.accept()
+    print("Connected by:", addr)
+
+    recv_thread = threading.Thread(target=receive_messages, args=(conn,), daemon=True)
+    recv_thread.start()
+
