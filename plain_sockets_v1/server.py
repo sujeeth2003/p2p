@@ -38,3 +38,10 @@ def main():
     recv_thread = threading.Thread(target=receive_messages, args=(conn,), daemon=True)
     recv_thread.start()
 
+    send_messages(conn)
+
+    conn.close()
+    server.close()
+
+if __name__ == "__main__":
+    main()
