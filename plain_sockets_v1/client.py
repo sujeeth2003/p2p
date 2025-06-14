@@ -24,3 +24,17 @@ def send_messages(sock):
         except (EOFError, OSError):
             break
 
+def main():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((SERVER_IP, PORT))
+    print("Connected!")
+
+    recv_thread = threading.Thread(target=receive_messages, args=(client,), daemon=True)
+    recv_thread.start()
+
+    send_messages(client)
+
+    client.close()
+
+if __name__ == "__main__":
+    main()
