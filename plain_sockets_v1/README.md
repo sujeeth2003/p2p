@@ -16,3 +16,19 @@ messages independently, without waiting for the other to speak first.
 - Both machines on the same network (Wi-Fi/LAN), OR port forwarding set up
   if connecting over the internet
 
+## Files
+
+- `server.py` — run this on the machine that will "host" the chat
+- `client.py` — run this on the machine that will "connect" to the host
+
+## Setup
+
+1. On the **server** machine, find its local IP address:
+   - Windows: `ipconfig` (look for IPv4 Address, e.g. `192.168.1.42`)
+   - macOS/Linux: `ifconfig` or `ip addr`
+
+2. Open `client.py` and set `SERVER_IP` to that address:
+   ```python
+   SERVER_IP = "192.168.1.42"
+   ```
+
