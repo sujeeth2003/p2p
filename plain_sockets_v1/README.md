@@ -32,3 +32,25 @@ messages independently, without waiting for the other to speak first.
    SERVER_IP = "192.168.1.42"
    ```
 
+3. Make sure port `3939` isn't blocked by a firewall on the server machine.
+
+## Running
+
+**On the server machine:**
+```bash
+python server.py
+```
+You should see:
+```
+Listening on 3939...
+```
+
+**On the client machine:**
+```bash
+python client.py
+```
+You should see:
+```
+Connected!
+```
+
