@@ -18,3 +18,15 @@ import json
 import os
 import struct
 
+from cryptography.exceptions import InvalidSignature, InvalidTag
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey
+from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
+
+MAX_FRAME = 1 << 20
+PROTOCOL = b"p2p-secure-chat-v1"
+_RAW = dict(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+
+
