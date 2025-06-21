@@ -109,3 +109,19 @@ def _recv_frame(sock):
     return _recv_exact(sock, n)
 
 
+class SecureChannel:
+    def __init__(self, sock, send_key, recv_key, peer_fingerprint, peer_public):
+        self.sock = sock
+        self._send, self._recv = ChaCha20Poly1305(send_key), ChaCha20Poly1305(recv_key)
+        self._send_ctr = self._recv_ctr = 0
+        self.peer_fingerprint, self.peer_public = peer_fingerprint, peer_public
+
+    @staticmethod
+    def _nonce(ctr):
+        return b"\0\0\0\0" + struct.pack(">Q", ctr)
+
+    def send(self, plaintext: bytes):
+        ct = self._send.encrypt(self._nonce(self._send_ctr), plaintext, None)
+        self._send_ctr += 1
+        _send_frame(self.sock, ct)
+
