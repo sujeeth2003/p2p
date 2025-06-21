@@ -19,3 +19,18 @@ def connected_pair():
     return a, b
 
 
+def run_handshakes(alice, bob, **kw):
+    """Handshake both sides concurrently; returns (channel_a, channel_b) or raises the first error."""
+    sa, sb = connected_pair()
+    out, errs = {}, {}
+
+    def side(tag, sock, ident, peers, init, name, extra):
+        try:
+            out[tag] = handshake(sock, ident, init, peers, name, **extra)
+        except Exception as e:
+            errs[tag] = e
+    ta = threading.Thread(target=side, args=("a", sa, alice[0], alice[1], True, "bob", kw.get("a_extra", {})))
+    tb = threading.Thread(target=side, args=("b", sb, bob[0], bob[1], False, "alice", kw.get("b_extra", {})))
+    ta.start(); tb.start(); ta.join(5); tb.join(5)
+    return out, errs, (sa, sb)
+
