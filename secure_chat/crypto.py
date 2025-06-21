@@ -161,3 +161,13 @@ def handshake(sock, identity: Identity, initiator: bool, peers: KnownPeers, peer
     except InvalidSignature:
         raise HandshakeError("peer failed to prove its identity (bad signature)")
 
+    fp = fingerprint(peer_id)
+    if expected_fingerprint is not None and fp != expected_fingerprint:
+        raise HandshakeError(f"fingerprint mismatch: expected {expected_fingerprint}, got {fp}")
+    peers.check(peer_name, fp, accept_new)
+
+    shared = eph.exchange(X25519PublicKey.from_public_bytes(peer_eph))
+    okm = HKDF(algorithm=hashes.SHA256(), length=64, salt=hashlib.sha256(transcript).digest(), info=PROTOCOL).derive(shared)
+    k_i2r, k_r2i = okm[:32], okm[32:]
+    send_key, recv_key = (k_i2r, k_r2i) if initiator else (k_r2i, k_i2r)
+    return SecureChannel(sock, send_key, recv_key, fp, peer_id)
