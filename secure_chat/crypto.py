@@ -38,3 +38,29 @@ class UnknownPeer(HandshakeError):
     pass
 
 
+def fingerprint(pub_raw: bytes) -> str:
+    h = hashlib.sha256(pub_raw).hexdigest()
+    return ":".join(h[i:i + 4] for i in range(0, 32, 4))          # 128 bits, grouped for reading aloud
+
+
+class Identity:
+    """Long-term Ed25519 identity, stored on disk with owner-only permissions."""
+
+    def __init__(self, key: Ed25519PrivateKey):
+        self.key = key
+        self.public = key.public_key().public_bytes(**_RAW)
+        self.fingerprint = fingerprint(self.public)
+
+    @classmethod
+    def load_or_create(cls, path):
+        if os.path.exists(path):
+            with open(path, "rb") as f:
+                return cls(Ed25519PrivateKey.from_private_bytes(f.read()))
+        key = Ed25519PrivateKey.generate()
+        raw = key.private_bytes(encoding=serialization.Encoding.Raw, format=serialization.PrivateFormat.Raw,
+                                encryption_algorithm=serialization.NoEncryption())
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "wb") as f:
+            f.write(raw)
+        return cls(key)
+
