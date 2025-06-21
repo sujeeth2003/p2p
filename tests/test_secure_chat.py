@@ -51,3 +51,21 @@ class SecureChatTests(unittest.TestCase):
         self.assertEqual(a.peer_fingerprint, self.bob[0].fingerprint)
         self.assertEqual(b.peer_fingerprint, self.alice[0].fingerprint)
 
+    def test_ciphertext_on_the_wire_hides_plaintext(self):
+        out, errs, (sa, sb) = run_handshakes(self.alice, self.bob)
+        secret = b"the launch code is 0000-hunter2"
+        out["a"].send(secret)
+        sb.settimeout(2)
+        wire = sb.recv(4096)                       # look at the raw bytes instead of decrypting
+        self.assertNotIn(b"hunter2", wire)
+        self.assertNotIn(b"launch", wire)
+
+    def test_tampered_frame_is_rejected(self):
+        out, _, (sa, sb) = run_handshakes(self.alice, self.bob)
+        a, b = out["a"], out["b"]
+        ct = a._send.encrypt(a._nonce(a._send_ctr), b"pay $10", None)
+        a._send_ctr += 1
+        flipped = bytearray(ct); flipped[0] ^= 1
+        crypto._send_frame(sa, bytes(flipped))
+        with self.assertRaises(HandshakeError): b.recv()
+
