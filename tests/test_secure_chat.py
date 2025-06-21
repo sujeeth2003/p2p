@@ -69,3 +69,19 @@ class SecureChatTests(unittest.TestCase):
         crypto._send_frame(sa, bytes(flipped))
         with self.assertRaises(HandshakeError): b.recv()
 
+    def test_replayed_frame_is_rejected(self):
+        out, _, (sa, sb) = run_handshakes(self.alice, self.bob)
+        a, b = out["a"], out["b"]
+        ct = a._send.encrypt(a._nonce(a._send_ctr), b"transfer", None)
+        a._send_ctr += 1
+        crypto._send_frame(sa, ct); self.assertEqual(b.recv(), b"transfer")
+        crypto._send_frame(sa, ct)                 # attacker resends the same frame
+        with self.assertRaises(HandshakeError): b.recv()
+
+    def test_sessions_use_fresh_keys(self):
+        o1, _, _ = run_handshakes(self.alice, self.bob)
+        o2, _, _ = run_handshakes(self.alice, self.bob)
+        ct1 = o1["a"]._send.encrypt(b"\0" * 12, b"same", None)
+        ct2 = o2["a"]._send.encrypt(b"\0" * 12, b"same", None)
+        self.assertNotEqual(ct1, ct2)              # forward secrecy: ephemeral keys differ per connection
+
