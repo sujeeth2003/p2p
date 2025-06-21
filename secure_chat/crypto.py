@@ -30,3 +30,11 @@ PROTOCOL = b"p2p-secure-chat-v1"
 _RAW = dict(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
 
 
+class HandshakeError(Exception):
+    pass
+
+
+class UnknownPeer(HandshakeError):
+    pass
+
+
