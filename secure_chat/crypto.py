@@ -64,3 +64,26 @@ class Identity:
             f.write(raw)
         return cls(key)
 
+
+class KnownPeers:
+    """Trust-on-first-use pin store: name -> fingerprint. A changed fingerprint is a hard error."""
+
+    def __init__(self, path):
+        self.path = path
+        self.pins = {}
+        if os.path.exists(path):
+            with open(path) as f:
+                self.pins = json.load(f)
+
+    def check(self, name, fp, accept_new=True):
+        if name in self.pins:
+            if self.pins[name] != fp:
+                raise HandshakeError(f"identity of '{name}' CHANGED (pinned {self.pins[name]}, got {fp}): possible man-in-the-middle")
+            return "pinned"
+        if not accept_new:
+            raise UnknownPeer(f"unknown peer '{name}' with fingerprint {fp}")
+        self.pins[name] = fp
+        with open(self.path, "w") as f:
+            json.dump(self.pins, f, indent=2)
+        return "new"
+
