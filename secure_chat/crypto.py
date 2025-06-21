@@ -87,3 +87,17 @@ class KnownPeers:
             json.dump(self.pins, f, indent=2)
         return "new"
 
+
+def _send_frame(sock, data: bytes):
+    sock.sendall(struct.pack(">I", len(data)) + data)
+
+
+def _recv_exact(sock, n):
+    buf = bytearray()
+    while len(buf) < n:
+        part = sock.recv(n - len(buf))
+        if not part:
+            raise ConnectionError("peer closed the connection")
+        buf += part
+    return bytes(buf)
+
