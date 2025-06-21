@@ -33,3 +33,37 @@ def run_chat(ch):
         pass
     ch.close()
 
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("mode", choices=["listen", "connect"])
+    ap.add_argument("args", nargs="+", help="listen: PORT   connect: HOST PORT")
+    ap.add_argument("--name", default="peer", help="label for the pinned peer identity")
+    ap.add_argument("--expect", help="peer's fingerprint (verified out of band); refuse anything else")
+    ap.add_argument("--identity", default="identity.key")
+    ap.add_argument("--peers", default="known_peers.json")
+    a = ap.parse_args()
+
+    me = Identity.load_or_create(a.identity)
+    print(f"your fingerprint: {me.fingerprint}")
+    peers = KnownPeers(a.peers)
+    if a.mode == "listen":
+        srv = socket.create_server(("0.0.0.0", int(a.args[0])))
+        print(f"waiting on port {a.args[0]} ...")
+        sock, addr = srv.accept()
+        initiator = False
+    else:
+        sock = socket.create_connection((a.args[0], int(a.args[1])))
+        initiator = True
+    try:
+        ch = handshake(sock, me, initiator, peers, a.name, a.expect)
+    except HandshakeError as e:
+        print(f"REFUSED: {e}")
+        return 1
+    print(f"secure channel up. peer fingerprint: {ch.peer_fingerprint}  ({'expected' if a.expect else 'pinned/TOFU'})")
+    run_chat(ch)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
