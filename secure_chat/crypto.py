@@ -139,3 +139,25 @@ class SecureChannel:
         except OSError: pass
 
 
+def handshake(sock, identity: Identity, initiator: bool, peers: KnownPeers, peer_name: str,
+              expected_fingerprint: str = None, accept_new: bool = True) -> SecureChannel:
+    """Mutually authenticated key exchange. `initiator` is the side that opened the TCP connection."""
+    eph = X25519PrivateKey.generate()
+    eph_pub = eph.public_key().public_bytes(**_RAW)
+    mine = eph_pub + identity.public
+    _send_frame(sock, mine)
+    theirs = _recv_frame(sock)
+    if len(theirs) != 64:
+        raise HandshakeError("malformed hello")
+    peer_eph, peer_id = theirs[:32], theirs[32:]
+
+    # transcript is ordered initiator-first so both sides sign/verify the same bytes
+    transcript = PROTOCOL + (mine + theirs if initiator else theirs + mine)
+    role_tag = b"I" if initiator else b"R"
+    _send_frame(sock, identity.key.sign(role_tag + transcript))
+    sig = _recv_frame(sock)
+    try:
+        Ed25519PublicKey.from_public_bytes(peer_id).verify(sig, (b"R" if initiator else b"I") + transcript)
+    except InvalidSignature:
+        raise HandshakeError("peer failed to prove its identity (bad signature)")
+
