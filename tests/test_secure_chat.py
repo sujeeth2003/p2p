@@ -85,3 +85,22 @@ class SecureChatTests(unittest.TestCase):
         ct2 = o2["a"]._send.encrypt(b"\0" * 12, b"same", None)
         self.assertNotEqual(ct1, ct2)              # forward secrecy: ephemeral keys differ per connection
 
+    def test_wrong_expected_fingerprint_refused(self):
+        _, errs, _ = run_handshakes(self.alice, self.bob, a_extra={"expected_fingerprint": "dead:beef"})
+        self.assertIn("a", errs); self.assertIsInstance(errs["a"], HandshakeError)
+
+    def test_tofu_pins_and_detects_key_change(self):
+        out, errs, _ = run_handshakes(self.alice, self.bob); self.assertEqual(errs, {})
+        # bob "reinstalls" and gets a new identity but keeps the name -> alice must refuse
+        os.remove(os.path.join(self.tmp, "bob.key"))
+        bob2 = make_peer(self.tmp, "bob")
+        _, errs, _ = run_handshakes(self.alice, bob2)
+        self.assertIn("a", errs)
+        self.assertIn("CHANGED", str(errs["a"]))
+
+    def test_man_in_the_middle_cannot_forge_identity(self):
+        # Mallory relays bob's hello but substitutes her own signature: the handshake must fail.
+        mallory = make_peer(self.tmp, "mallory")
+        sa, sm = connected_pair()
+        result = {}
+
