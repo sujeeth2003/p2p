@@ -101,3 +101,11 @@ def _recv_exact(sock, n):
         buf += part
     return bytes(buf)
 
+
+def _recv_frame(sock):
+    (n,) = struct.unpack(">I", _recv_exact(sock, 4))
+    if n > MAX_FRAME:
+        raise HandshakeError("frame too large")
+    return _recv_exact(sock, n)
+
+
