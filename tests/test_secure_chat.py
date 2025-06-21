@@ -104,3 +104,21 @@ class SecureChatTests(unittest.TestCase):
         sa, sm = connected_pair()
         result = {}
 
+        def alice_side():
+            try: handshake(sa, self.alice[0], True, self.alice[1], "bob", expected_fingerprint=self.bob[0].fingerprint)
+            except HandshakeError as e: result["err"] = e
+        t = threading.Thread(target=alice_side); t.start()
+        m_hello = crypto._recv_frame(sm)                      # alice's hello
+        crypto._send_frame(sm, m_hello[:32] + mallory[0].public)   # mallory answers with HER identity
+        crypto._recv_frame(sm)                                # alice's signature
+        crypto._send_frame(sm, mallory[0].key.sign(b"whatever"))
+        t.join(5)
+        self.assertIn("err", result)
+
+    def test_identity_file_not_overwritten_and_persistent(self):
+        again = Identity.load_or_create(os.path.join(self.tmp, "alice.key"))
+        self.assertEqual(again.fingerprint, self.alice[0].fingerprint)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
