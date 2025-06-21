@@ -1,0 +1,7 @@
+identity.key
+known_peers.json
+*.key
+__pycache__/
+*.pyc
+.venv/
+.env
