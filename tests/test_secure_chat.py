@@ -34,3 +34,20 @@ def run_handshakes(alice, bob, **kw):
     ta.start(); tb.start(); ta.join(5); tb.join(5)
     return out, errs, (sa, sb)
 
+
+class SecureChatTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.alice, self.bob = make_peer(self.tmp, "alice"), make_peer(self.tmp, "bob")
+
+    def test_roundtrip_both_directions(self):
+        out, errs, _ = run_handshakes(self.alice, self.bob)
+        self.assertEqual(errs, {})
+        a, b = out["a"], out["b"]
+        a.send(b"hello bob"); self.assertEqual(b.recv(), b"hello bob")
+        b.send(b"hi alice"); self.assertEqual(a.recv(), b"hi alice")
+        for i in range(100):
+            a.send(f"m{i}".encode()); self.assertEqual(b.recv(), f"m{i}".encode())
+        self.assertEqual(a.peer_fingerprint, self.bob[0].fingerprint)
+        self.assertEqual(b.peer_fingerprint, self.alice[0].fingerprint)
+
