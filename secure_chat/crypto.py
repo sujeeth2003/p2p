@@ -125,3 +125,17 @@ class SecureChannel:
         self._send_ctr += 1
         _send_frame(self.sock, ct)
 
+    def recv(self) -> bytes:
+        ct = _recv_frame(self.sock)
+        try:
+            pt = self._recv.decrypt(self._nonce(self._recv_ctr), ct, None)
+        except InvalidTag:
+            raise HandshakeError("message failed authentication (tampered, replayed or reordered)")
+        self._recv_ctr += 1
+        return pt
+
+    def close(self):
+        try: self.sock.close()
+        except OSError: pass
+
+
