@@ -16,3 +16,11 @@ The repo has two stages:
 - **Trust:** read your fingerprint to your peer over a trusted channel and pass theirs with `--expect`, or rely on **trust-on-first-use** pinning (like SSH `known_hosts`). If a pinned peer's identity ever changes the connection is refused.
 - **Encryption:** **ChaCha20-Poly1305**, separate keys per direction (HKDF-SHA256), nonce = message counter, so tampered, replayed, dropped or reordered messages fail authentication.
 
+### What it does not do
+Hide metadata (IP addresses, timing, message sizes), rotate keys within a session (no double ratchet), support groups or offline delivery, or work through NAT without port forwarding. It has **not been independently audited**. Use Signal for anything that matters.
+
+## Run
+```bash
+pip install -r requirements.txt
+python -m unittest discover -s tests -v        # 9 tests
+
