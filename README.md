@@ -24,3 +24,10 @@ Hide metadata (IP addresses, timing, message sizes), rotate keys within a sessio
 pip install -r requirements.txt
 python -m unittest discover -s tests -v        # 9 tests
 
+# machine A                                       # machine B
+python -m secure_chat.chat listen 5000            python -m secure_chat.chat connect <A's IP> 5000
+```
+Each side prints its fingerprint on start-up. Compare them out of band, then pin with `--expect <fingerprint>` on later runs.
+
+## Tests
+Round trip in both directions (100 messages), plaintext absent from the bytes on the wire, tampered frame rejected, replayed frame rejected, fresh session keys per connection, wrong expected fingerprint refused, TOFU key-change detection, a simulated man-in-the-middle that substitutes its own identity, identity persistence.
