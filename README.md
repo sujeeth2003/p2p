@@ -9,3 +9,10 @@ The repo has two stages:
 | [`plain_sockets_v1/`](plain_sockets_v1) | The first version: raw TCP sockets + threads, no encryption. Good for understanding how a two-way socket chat works |
 | [`secure_chat/`](secure_chat) | The real thing: authenticated key exchange and AEAD-encrypted messages on top of the same idea |
 
+## Security design (`secure_chat/crypto.py`)
+- **Identity:** each user has a long-term Ed25519 key (`identity.key`, created with `0600` permissions); the fingerprint is the SHA-256 of the public key.
+- **Key exchange:** a fresh ephemeral **X25519** exchange on every connection gives **forward secrecy**.
+- **Authentication:** both sides sign the whole handshake transcript with their identity key. A man-in-the-middle cannot substitute keys without failing verification.
+- **Trust:** read your fingerprint to your peer over a trusted channel and pass theirs with `--expect`, or rely on **trust-on-first-use** pinning (like SSH `known_hosts`). If a pinned peer's identity ever changes the connection is refused.
+- **Encryption:** **ChaCha20-Poly1305**, separate keys per direction (HKDF-SHA256), nonce = message counter, so tampered, replayed, dropped or reordered messages fail authentication.
+
